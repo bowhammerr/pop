@@ -1,0 +1,37 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+width: 100%; height: 100%;
+font-family: 'Montserrat', sans-serif;
+background: black; color: white;
+overflow: hidden;
+}
+#cam {
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+object-fit: cover;
+transform: scaleX(-1);
+z-index: 0;
+}
+#overlay, #pages {
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+z-index: 1;
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+flex-direction: column;
+padding: 20px;
+}
+.page { display: none; }
+.page.active { display: flex; flex-direction: column; align-items: center; }
+#time { font-size: 3rem; margin: 10px 0; }
+#date { font-size: 1.2rem; opacity: 0.8; }
+#quote { font-style: italic; margin-top: 10px; }
+#weather { margin-top: 20px; }
+#icon { width: 60px; height: 60px; background-size: contain; background-repeat: no-repeat; margin-bottom: 10px; }
+#temp { font-size: 1.5rem; }
+#messages { margin-top: 20px; text-align: left; }
+#messages li { margin-bottom: 10px; }
