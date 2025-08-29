@@ -1,0 +1,35 @@
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Espejo IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<video id="cam" autoplay muted playsinline></video>
+<div id="pages">
+<section class="page active" id="mainView">
+<div id="time"></div>
+<div id="date"></div>
+<div id="quote"></div>
+</section>
+<section class="page" id="weatherView">
+<div id="weather">
+<div id="icon"></div>
+<div id="temp"></div>
+</div>
+</section>
+<section class="page" id="messagesView">
+<ul id="messages">
+<li>📨 Recordá contestar el correo de la uni</li>
+<li>📩 Hoy tenés reunión a las 15:00</li>
+<li>📨 Pedido confirmado en TiendaMIA</li>
+</ul>
+</section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
