@@ -54,28 +54,46 @@ minDetectionConfidence: 0.7,
 minTrackingConfidence: 0.5
 });
 hands.onResults(results => {
-if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-const x = results.multiHandLandmarks[0][0].x;
-const now = Date.now();
-if (!window.lastX) window.lastX = x;
-if (!window.lastTime) window.lastTime = now;
+  const lm = results.multiHandLandmarks?.[0];
+  if (!lm) return;
 
+  const t = nowMs();
 
-if (now - window.lastTime > 1000) {
-const dx = x - window.lastX;
-if (dx > 0.15) {
-currentPage = (currentPage + 1) % pages.length;
-showPage(currentPage);
-window.lastTime = now;
-} else if (dx < -0.15) {
-currentPage = (currentPage - 1 + pages.length) % pages.length;
-showPage(currentPage);
-window.lastTime = now;
-}
-window.lastX = x;
-}
-}
+  // --- GESTO: PUÑO CERRADO -> FOTO (mantener ~0.6s, cooldown 3s) ---
+  if (isFist(lm)) {
+    if (!fistSince) fistSince = t;
+    // evita múltiples disparos seguidos
+    const steady = t - fistSince > 600;
+    const cooled = t - lastShot > 3000;
+    if (steady && cooled) {
+      lastShot = t;
+      sendOrSavePhoto(document.getElementById('cam'));
+    }
+  } else {
+    fistSince = 0;
+  }
+
+  // --- TU LÓGICA EXISTENTE DE SWIPE PARA CAMBIAR PÁGINAS ---
+  // (ejemplo basado en lo que pasaste)
+  const x = lm[0].x;
+  if (!window.lastX) window.lastX = x;
+  if (!window.lastTime) window.lastTime = t;
+
+  if (t - window.lastTime > 1000) {
+    const dx = x - window.lastX;
+    if (dx > 0.15) {
+      currentPage = (currentPage + 1) % pages.length;
+      showPage(currentPage);
+      window.lastTime = t;
+    } else if (dx < -0.15) {
+      currentPage = (currentPage - 1 + pages.length) % pages.length;
+      showPage(currentPage);
+      window.lastTime = t;
+    }
+    window.lastX = x;
+  }
 });
+
 
 
 const camera = new Camera(videoElement, {
