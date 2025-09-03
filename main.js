@@ -1,3 +1,105 @@
+
+function showToast(msg) {
+  let toast = document.getElementById('shotToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'shotToast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1800);
+}
+
+function flashScreen() {
+  let flash = document.getElementById('flash');
+  if (!flash) {
+    flash = document.createElement('div');
+    flash.id = 'flash';
+    document.body.appendChild(flash);
+  }
+  flash.classList.add('on');
+  setTimeout(() => flash.classList.remove('on'), 120);
+}
+function nowMs(){ return Date.now(); }
+
+let fistSince = 0;
+let lastShot = 0;
+
+function isFist(lm) {
+  // Puño = puntas (8,12,16,20) NO están por encima de sus PIP (tip - 2)
+  const fingers = [8,12,16,20];
+  for (const tip of fingers) {
+    const pip = tip - 2;
+    if (lm[tip].y < lm[pip].y - 0.02) return false; // dedo extendido
+  }
+  return true;
+}
+
+async function captureFrame(videoEl) {
+  const w = videoEl.videoWidth || 640;
+  const h = videoEl.videoHeight || 480;
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  // Espejo como el <video>
+  ctx.translate(w, 0); ctx.scale(-1, 1);
+  ctx.drawImage(videoEl, 0, 0, w, h);
+  const blob = await new Promise(res => canvas.toBlob(res, 'image/png', 1));
+  const file = new File([blob], `espejo_${new Date().toISOString().replace(/[:.]/g,'-')}.png`, { type:'image/png' });
+  return { blob, file, dataUrl: canvas.toDataURL('image/png') };
+}
+
+const SEND_WEBHOOK_URL = ""; // opcional: tu endpoint si querés que la envíe
+
+async function sendOrSavePhoto(videoEl) {
+  // Feedback inmediato
+  flashScreen();
+  showToast('📸 Capturando foto…');
+
+  const { blob, file, dataUrl } = await captureFrame(videoEl);
+
+  // 1) Compartir si el navegador lo permite (móvil)
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'Espejo IA - Foto' });
+      showToast('📤 Foto compartida');
+      return;
+    } catch {} // usuario canceló
+  }
+
+  // 2) Webhook opcional
+  if (SEND_WEBHOOK_URL) {
+    try {
+      await fetch(SEND_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          filename: file.name,
+          mimeType: 'image/png',
+          data: dataUrl.split(',')[1] // base64 puro
+        })
+      });
+      showToast('📨 Foto enviada');
+      return;
+    } catch(e){ console.error('Webhook error:', e); }
+  }
+
+  // 3) Descarga local como fallback
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  showToast('📥 Foto descargada');
+
+  // (Opcional) registrar en Mensajes
+  document.querySelector('#messages')?.insertAdjacentHTML(
+    'afterbegin',
+    `<li>📸 Foto ${new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</li>`
+  );
+}
 const videoElement = document.getElementById('cam');
 function showPage(index) {
 pages.forEach((p, i) => p.classList.toggle('active', i === index));
